@@ -1,0 +1,47 @@
+HW-2		CS451	20 points	Due: Monday. 9/14/2020
+
+***********************************************************************
+* DO NOT RUN THIS ON ANY SERVER!!!!!!!!!!!!                           *
+* Only run this on a machine that you can push the "reset" button!!!! *
+*                                                                     *
+* IF YOU BRING ANY SERVER DOWN ITS WILL LOCK YOUR ACCOUNT! and I will *
+* not assist in your getting your account back.                       *
+***********************************************************************
+
+Create a C program that is a fork bomb. The *original* parent must fork 
+2 processes:
+A. An "X" program (xeyes, xclock, etc) - so you can watch it take over 
+   the computer.
+B. Itself (ie sort of like recursion) - to keep the process of creating 
+   offspring alive.
+
+RULES:
+------
+1. You must use fork() and one of the exe() variants.
+
+2. You cannot use any loops! Using a loop negates this as a fork bomb and
+   will earn you very few points!
+
+3. Your program must spawn dozens of children, grand children, great grand 
+   children, etc to be a real fork bomb. Ie The screen must fill up with 
+   the "X" programs.
+
+
+REQUIREMENTS:
+-------------
+1. Your program must compile and run on Linux Mint.
+2. Your full name must appear as a comment at the beginning 
+   of your program.
+3. Your source code must be named hw2-yourname.c
+4. Your source MUST compile using "gcc hw2-yourname.c" or "g++ hw2-yourname.cpp"
+5. Failure to follow the above 4 directions will result in 
+   loss of points.
+
+***********************************************************************
+* DO NOT RUN THIS ON ANY SERVER!!!!!!!!!!!!                           *
+* Only run this on a machine that you can push the "reset" button!!!! *
+*                                                                     *
+* IF YOU BRING ANY SERVER DOWN ITS WILL LOCK YOUR ACCOUNT! and I will *
+* not assist in your getting your account back.                       *
+***********************************************************************
+
