@@ -51,26 +51,6 @@ void* fileReader(void* arg)
     count++;
     pthread_cond_signal(&empty);
     pthread_mutex_unlock(&mutex);
-/*
-    while(1)
-    {
-        pthread_mutex_lock(&mutex);
-        if(read)
-        {
-            read = 0;
-            if(fscanf(readFile, "%d\n", &readVal) == EOF)
-            {
-                done = 1;
-                written = 1;
-                pthread_mutex_unlock(&mutex);
-                break;
-            }
-            sharedInt = readVal;
-            written = 1;
-        }
-        pthread_mutex_unlock(&mutex);
-    }
-*/
     fclose(readFile);
     pthread_exit(NULL);
 }
@@ -107,40 +87,7 @@ void* fileWriter(void* arg)
     }
     pthread_exit(NULL);
 }
-/*
-    while(1)
-    {
-        pthread_mutex_lock(&mutex);
-        if(written)
-        {
-            written = 0;
-            if(done)
-            {
-                read = 1;
-                pthread_mutex_unlock(&mutex);
-                break;
-            }
-            writeVal = sharedInt;
-            read = 1; 
-            pthread_mutex_unlock(&mutex); 
-        
-            if ((writeVal % 2) == 0)
-            {
-                fprintf(fp, "%d\n%d\n", writeVal, writeVal);
-            }
-            else
-            {
-                fprintf(fp, "%d\n", writeVal);
-            }
-            continue;
-        }
-        pthread_mutex_unlock(&mutex);
-
-    }
-    pthread_exit(NULL);
-}
-*/
-
+    
 /************************************************
  * Main
  * *********************************************/
