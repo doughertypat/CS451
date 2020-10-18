@@ -1,0 +1,80 @@
+HW-7	CS451	10 points	Due: Monday 10/19/2020
+
+It's that spooky time of year when the dead walk the Earth, 
+things go bump in the night, and the Centers for Disease 
+Control (CDC) recognizes the need for zombie preparedness 
+(http://www.cdc.gov/phpr/zombies.htm).
+
+To honor this time of year, we will call this assignment the 5 
+little monsters (Vlad, Frank, Bigfoot, Casper, and Gomez).  
+We will honor Morticia by naming her the mommie thread. 
+
+Since monsters cannot balance their budget, we will show 
+them how by writing a program that performs many parallel 
+bank account updates WITHOUT a lost update!
+
+Write a C/C++ program that uses the PTHREAD library to create 
+5 threads and mutexes to synchronize them. The program must 
+to the following:
+
+* Morticia may initialize the mutexes, then create the threads. 
+  You may want to detach the threads once they are created. 
+
+* Each thread will open its own command file (Vlad.in, Frank.in, 
+  etc) for reading. The file format will be:
+
+   R
+   +/-N
+   +/-N	Note that there may be many +/-N lines
+   W
+
+   R indicates the start of a critical section - where you will 
+     acquire the account balance from global storage (a single 
+     float).
+
+   +/-N (float) indicates a deposit (+N) or withdraw (-N) from 
+     the account.
+
+   W indicates the end of the critical section - where you 
+     will write the account balance to global storage. At this 
+     point each thread must also display the text:
+
+     Account balance after thread *thread_name_here* is $xxx
+
+   Note that there will also be many RNW sections in each file.
+
+NOTES:
+------
+Start with a budget of 0 (zero).
+
+Each input file may be of different length and you may simply 
+allow the thread to die at the file end. Hence you may NOT want 
+to have Morticia employ a pthread_join and detach the threads
+instead.
+
+The result of the single account should NOT contain any lost 
+update. That is, the results should be the same as if a single 
+thread processed all 5 input files on the single account (hint, 
+for testing). However, you CANNOT force the threads into any 
+serial execution. Once spawned they must be free from external 
+influences (other than the mutexes).
+
+I suggest you include a sleep() function in each thread to make 
+sure each thread runs long enough to get the random update 
+behavior required.
+
+You can only create the threads once.
+
+You can only use mutexes to sychronize the threads, no semaphores
+or any kind of global "flag" is allowed.
+
+REQUIREMENTS:
+-------------
+1. Your program must compile and run on Linux Mint.
+2. Your full name must appear as a comment at the beginning of your 
+   program.
+3. Your source code must be named hw7-yourname.c or hw7-yourname.cpp
+4. Your source MUST compile using "gcc hw7-yourname.c -pthread" or 
+   "g++ hw7-yourname.cpp -lpthread"
+5. Failure to follow the above 4 directions will result in 
+   loss of points.
