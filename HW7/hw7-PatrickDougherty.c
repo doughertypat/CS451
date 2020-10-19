@@ -70,11 +70,6 @@ void* threadUpdateBalance(void* arg)
 }
 
 /************************************************
- * Utility Functions
- * *********************************************/
-
-
-/************************************************
  * Main
  * *********************************************/
 
@@ -93,6 +88,8 @@ int main (void)
     {
         pthread_join(thread[i], NULL);
     }
+    
+    pthread_mutex_destroy(&mutex);
 
     return 0;
 }

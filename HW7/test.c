@@ -11,6 +11,9 @@
 
 #define MAXSIZE 100000
 #define MAX_AMOUNT 10000
+#define EXIT_PROB 128 //larger is less likely to exit before reaching max size
+#define MORE_N_PROB 4 //larger is more likely to put more N's in each RNW
+#define PLUS_MINUS_PROB 2 //larger is more likely to generate a minus
 
 const char* names[] = {"Vlad", "Frank", "Bigfoot", "Casper", "Gomez"};
 
@@ -18,7 +21,7 @@ void randomTrans(char* randTrans)
 {
     char plusMinus;
     float amount;
-    if (rand() < (RAND_MAX/2))
+    if (rand() < (RAND_MAX/PLUS_MINUS_PROB))
         plusMinus = '+';
     else
         plusMinus = '-';
@@ -44,7 +47,7 @@ int main(void)
             fprintf(f, "R\n");
             randomTrans(transAmt);
             fprintf(f, "%s\n", transAmt);
-            while (rand() > (RAND_MAX/4))
+            while (rand() > (RAND_MAX/MORE_N_PROB))
             {
                 randomTrans(transAmt);
                 fprintf(f, "%s\n", transAmt);
@@ -52,7 +55,7 @@ int main(void)
             }
             fprintf(f, "W\n");
             size += 3;
-            if (rand() < RAND_MAX/64)
+            if (rand() < RAND_MAX/EXIT_PROB)
                 break;
         }
 
