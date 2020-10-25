@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAXSIZE 100000
-#define MAX_AMOUNT 10000
+#define MAXSIZE 10000
+#define MAX_AMOUNT 100
 #define EXIT_PROB 128 //larger is less likely to exit before reaching max size
 #define MORE_N_PROB 4 //larger is more likely to put more N's in each RNW
 #define PLUS_MINUS_PROB 2 //larger is more likely to generate a minus
