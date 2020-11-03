@@ -10,7 +10,7 @@
 #include <stdlib.h>  //rand_r
 #include <unistd.h>
 
-#define NUM_OF_THREADS 5
+#define NUM_OF_THREADS 5  //Do NOT set higher than number of names in threadNames
 #define PF_PROB 15  //Page fault probabiilty, higher is more likely
 #define R_RESET_MAX_TIME 500 //Max time interval in us
 #define R_RESET_MIN_TIME 200 //Min time interval in us
@@ -32,14 +32,14 @@ struct Page
 struct threadData
 {
     struct Page *pages[NUM_OF_THREADS + 1];  //Pointers to owned pages
-    struct Page **head;
-    unsigned int randState; 
+    struct Page **head;     //pointer to pointer to head
+    unsigned int randState; //rand_r state variable
     const char *threadName;
     int *finished;
 };
 
 /***********************************************
- * Stubs
+ * Fun Declarations
  * ********************************************/
 void requestPage(struct threadData *data);
 
@@ -56,7 +56,8 @@ void* threadUpdateBalance(void* arg)
     float transAmount;
     //Create unique rand seed by XORing time, pid and tid
     data->randState = time(NULL) ^ getpid() ^ pthread_self();
-    //Request initial page
+    //Request initial pagei
+    printf("%s is requesting an initial page\n");
     requestPage(data);
 
     //Generate file name and open file
@@ -164,7 +165,7 @@ void destroyPages(struct Page **head)
 {
     struct Page *prevPage = (*head);
     struct Page *nextPage = prevPage->next;
-    for (int i = 0; i < NUM_OF_THREADS-1; i++)
+    for (int i = 0; i < NUM_OF_THREADS-1; i++) //This works but what about while(x->next != NULL)?
     {
         prevPage->next = NULL;
         free(prevPage);
@@ -181,7 +182,7 @@ void destroyPages(struct Page **head)
 void requestPage(struct threadData *data)
 {
     struct Page *C0 = NULL, *C1 = NULL, *C2 = NULL, *C3 = NULL;
-    pthread_mutex_lock(&pageMutex); //We need this because the main thread may reset R:e
+    pthread_mutex_lock(&pageMutex); //We need this because the main thread may reset R
     struct Page *curPage = (*data->head);
     //Find and select, if it exists, one page of each class
     for (int i = 0; i <= NUM_OF_THREADS; i++)
@@ -245,7 +246,7 @@ void requestPage(struct threadData *data)
             //Update owner name
             curPage->owner = data->threadName;
             //Change head so we don't start there again, make selection slightly more random
-            (*data->head) = curPage->next->next;
+            (*data->head) = curPage->next->next; //Previous head->next is what this does
             pthread_mutex_unlock(&pageMutex);
             return;
         }
@@ -260,19 +261,21 @@ void requestPage(struct threadData *data)
 
 int main (void)
 {
-    struct threadData data[NUM_OF_THREADS];
-    struct Page *head = NULL;
-    createPages(&head);
-    unsigned int randState = time(NULL) ^ getpid();
+    //Initialize ariables
     int randVal;
     pthread_t thread[NUM_OF_THREADS];
-    
+    struct threadData data[NUM_OF_THREADS];
+    struct Page *head = NULL;
+    //create circular linked list
+    createPages(&head);
+    //create rand_r state variable
+    unsigned int randState = time(NULL) ^ getpid();
+    //Init mutex
     pthread_mutex_init(&mutex, NULL);
     pthread_mutex_init(&pageMutex, NULL);
-    
+    //Create threads and initialize their data
     for (int i = 0; i < NUM_OF_THREADS; i++)
     {
-        
         data[i].threadName = threadNames[i];
         data[i].finished = &finished;
         data[i].head = &head;
@@ -281,11 +284,11 @@ int main (void)
         pthread_create(&thread[i], NULL, threadUpdateBalance, (void*) &data[i]);
     }
     //While monsters are spending randomly reset pages R bit
-    while (finished < 5)
+    while (finished < 5) //No need to mutex, missed update at end only cycles one extra time
     {
         //Randomely wait sometime between R_RESET_MAX_TIME and R_RESET_MIN_TIME
         usleep(rand_r(&randState)%(R_RESET_MAX_TIME + 1 - R_RESET_MIN_TIME)+R_RESET_MIN_TIME);
-        //printf("Reseting R's\n"); 
+        //printf("Reseting R's\n");  //Uncomment to see R resets announced
         pthread_mutex_lock(&pageMutex);
         //Reset R bits (...well ints really)
         struct Page *curPage = head;
@@ -296,14 +299,16 @@ int main (void)
             curPage->R = 0;
         }
         pthread_mutex_unlock(&pageMutex);
-    }    
+    }
+    //Join threads    
     for (int i = 0; i < NUM_OF_THREADS; i++)
     {
         pthread_join(thread[i], NULL);
     }
-   
+    //Clean up
     pthread_mutex_destroy(&mutex);
-
+    pthread_mutex_destroy(&pageMutex);
     destroyPages(&head);
+
     return 0;
 }
