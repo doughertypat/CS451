@@ -15,6 +15,10 @@
 #include <errno.h>
 #include <fcntl.h>
 
+/************************************************
+ * Functions
+ * *********************************************/
+
 int isVowel(char t) {
     if (t == 'a' || t == 'e' || t == 'i' || t == 'o' || t == 'u'||
         t == 'A' || t == 'E' || t == 'I' || t == 'O' || t == 'U')
@@ -28,52 +32,57 @@ int isLetter(char d) {
     return 0;
 }
 
+/************************************************
+ * Main
+ * *********************************************/
+
 int main(int argc, char **argv) {
-    char buf[50] = { '\0' };
+    char buf[100] = { '\0' };
     int pipe12[2], pipe23[2];
     int semid, res;
     int stringLen, type1 = 0, type2 = 0;
     struct sembuf sem_unlock, sem_lock;
-
+    //Set-up sembufs for 'locking' and 'unlocking' the semaphore
     sem_unlock.sem_num = 0;
     sem_unlock.sem_op = 1;
     sem_unlock.sem_flg = 0;
     sem_lock.sem_num = 0;
     sem_lock.sem_op = -1;
     sem_lock.sem_flg = 0;
-
+    //Convert pipe and sem IDs back to int's
     pipe12[0] = atoi(argv[1]);
     pipe12[1] = atoi(argv[2]);
     semid = atoi(argv[3]);
-    //pipe23[0] = atoi(argv[4]);
-    //pipe23[1] = atoi(argv[5]);
+    pipe23[0] = atoi(argv[4]);
+    pipe23[1] = atoi(argv[5]);
+    //make pipe12 non-blocking on read
     fcntl(pipe12[0], F_SETFL, O_NONBLOCK);
-    //TODO: create pipe23 variables and close read end
+    //close unused ends of pipes
     close(pipe12[1]);
-    //close(pipe23[0]);
-    printf("2 before loop\n");
+    close(pipe23[0]);
     while (1) {
         semop(semid, &sem_lock, 1);
-        if ((res = read(pipe12[0], &buf, 50)) <= 0) {
-            if (errno == EAGAIN) {
+        //Check if read returns EOF or error
+        if ((res = read(pipe12[0], &buf, 100)) <= 0) {
+            //Check if EOF reached
+            if (res == 0) {
                 semop(semid, &sem_unlock, 1);
-                sleep(1);
-                continue;
-            } else if (res == 0) {
-                semop(semid, &sem_unlock, 1);
-                printf("2 left critical region on to break\n");
                 break;
+            //Read would've been blocked so release semaphore and continue
+            } else if (errno == EAGAIN) {
+                semop(semid, &sem_unlock, 1);
+                continue;
             }
         }
-        printf("2 leaving critical region\n");
         semop(semid, &sem_unlock, 1);
-        printf("2 left critical region\n");
+        //Pig latin magical converter
         stringLen = strlen(buf);
         if (isVowel(buf[0])) {
             type1 += 1;
             if (isLetter(buf[stringLen - 1]))
                 strcat(buf, "ray");
             else {
+                //Per specification only , or . will be encountered
                 if (buf[stringLen - 1] == ',') {
                     buf[stringLen - 1] = '\0';
                     strcat(buf, "ray,");
@@ -84,7 +93,7 @@ int main(int argc, char **argv) {
             }
         } else {
             type2 += 1;
-            char buf2[50] = { '\0' }; 
+            char buf2[100] = { '\0' }; 
             if (isLetter(buf[stringLen -1])) {
                 strcpy(buf2, buf+1);
                 buf2[stringLen - 1] = buf[0];
@@ -100,25 +109,20 @@ int main(int argc, char **argv) {
                 strcpy(buf, buf2);
             }
         }
-        printf("%s ", buf);
-        //write(pipe23[1], &buf, 50);
+        write(pipe23[1], &buf, 100);
     }
+    //Close pipe12 and sem cuz we're done with them
     close(pipe12[0]);
-    
-    
-    //TODO: Write type count to files BE CAREFUL about p3 reading to early
-    printf("2 opening files\n");
+    semctl(semid, 0, IPC_RMID);
+    //Write type count to files... close pipe after writing to files
     FILE *out1 = fopen("shared1.dat", "w");
     FILE *out2 = fopen("shared2.dat", "w");
     fprintf(out1, "%d\n", type1);
     fprintf(out2, "%d\n", type2);
     fclose(out1);
     fclose(out2);
-    printf("2 closed files\n");
-    //write(pipe23[1], "#*#*#", 50);
-    //close(pipe23[1]);
-    printf("2 done\n");
-    
+    //Close pipe here so program3 will be released from read loop
+    close(pipe23[1]);
 
     return 0;
 }

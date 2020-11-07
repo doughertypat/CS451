@@ -8,24 +8,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
+#include <sys/sem.h>
 #include <unistd.h>
+#include <string.h>
+
+/************************************************
+ * Main
+ * *********************************************/
 
 int main(int argc, char **argv) {
-    char buf[50];
+    FILE *outFile = fopen("output.data", "w");
+    FILE *type1, *type2;
+    char buf[100];
     int pipe23[2];
 
     pipe23[0] = atoi(argv[1]);
     pipe23[1] = atoi(argv[2]);
     close(pipe23[1]);
-    printf("3 before loop\n");
-    /*
-    while (read(pipe23[0], &buf, 50) > 0) {
-        printf("%s ", buf);
+   
+    read(pipe23[0], &buf, 100);
+    fprintf(outFile, "%s", buf); 
+    while (read(pipe23[0], &buf, 100) > 0) {
+        fprintf(outFile, " %s", buf);
     }
-    */
-    printf("3 after loop\n");
+    
     close(pipe23[0]);
-    printf("3 done\n");
+    fclose(outFile);
+    type1 = fopen("shared1.dat", "r");
+    fscanf(type1, "%s", buf);
+    printf("Type 1: %s\n", buf);
+    fclose(type1);
+    type2 = fopen("shared2.dat", "r");
+    fscanf(type2, "%s", buf);
+    printf("Type 2: %s\n", buf);
+    fclose(type2);
     return 0;
 }
 
